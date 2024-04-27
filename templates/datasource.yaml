@@ -1,0 +1,15 @@
+name: "{{name}}"
+class_name: Datasource
+module_name: great_expectations.datasource
+execution_engine:
+  class_name: SqlAlchemyExecutionEngine
+  module_name: great_expectations.execution_engine
+  connection_string: "{{connection_string}}"
+  create_temp_table: False
+data_connectors:
+  "{{data_connector_name}}":
+    class_name: ConfiguredAssetSqlDataConnector
+    assets: 
+      "{{table_name}}":
+        table_name: "{{table_name}}"
+        schema_name: "{{schema_name}}"

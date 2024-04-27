@@ -1,0 +1,22 @@
+name: "{{name}}"
+config_version: 1
+class_name: Checkpoint
+run_name_template: "{{run_name_template}}"
+validations:
+  - batch_request:
+      datasource_name: "{{datasource_name}}"
+      data_connector_name: "{{data_connector_name}}"
+      data_asset_name: "{{data_asset_name}}"
+      data_connector_query:
+        index: -1
+    expectation_suite_name: "{{expectation_suite_name}}"
+    action_list:
+      - name: store_validation_result
+        action:
+          class_name: StoreValidationResultAction
+      - name: store_evaluation_params
+        action:
+          class_name: StoreEvaluationParametersAction
+      - name: update_data_docs
+        action:
+          class_name: UpdateDataDocsAction

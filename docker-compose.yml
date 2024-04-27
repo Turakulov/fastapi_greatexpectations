@@ -1,0 +1,47 @@
+version: '3.9'
+
+services:
+  app:
+    build: .
+    platform: linux/amd64
+    env_file:
+      - .env
+    volumes:
+      - ./gx:/home/code/gx
+      - ./models:/home/code/tests
+      - ./routers:/home/code/routers
+      - ./templates:/home/code/templates
+      - ./utils:/home/code/utils
+      - ./logger.ini:/home/code/logger.ini
+    ports:
+      - 8000:8080
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/test
+    command: bash -c "
+      while !</dev/tcp/db/5432; do sleep 1; done;
+      uvicorn main:app
+      --log-config ./logger.ini
+      --host 0.0.0.0 --port 8080
+      --lifespan=on --use-colors
+      --reload --log-level debug
+      "
+#    depends_on:
+#      - db
+#  db:
+#    build:
+#      context: ./postgresql
+#      dockerfile: Dockerfile
+#    platform: linux/amd64
+#    volumes:
+#      - ./postgres_data:/var/lib/postgresql/data/
+#      - ./postgresql:/home/code/postgresql
+#    ports:
+#      - 5432:5432
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=password
+#      - POSTGRES_DB=periodic_table
+#
+#volumes:
+#  postgres_data:
+

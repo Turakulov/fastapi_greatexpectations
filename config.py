@@ -26,7 +26,6 @@ class Settings(BaseSettings):
         port=int(os.getenv("SQL_PORT")),
         path=f"{os.getenv('SQL_DB') or ''}"
     )
-    sql_datasource_name: str = os.getenv("SQL_DATASOURCE_NAME", "default")
 
 
 settings = Settings()
