@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 
 load_dotenv('.env')
 
+SCRIPT_DIR = os.path.dirname(__file__)
+
 
 class SqlDBUrl(Url):
     allowed_schemes = {

@@ -7,8 +7,10 @@ services:
     env_file:
       - .env
     volumes:
+      - ./notifications:/home/code/notifications
       - ./gx:/home/code/gx
       - ./models:/home/code/tests
+      - ./outputs:/home/code/outputs
       - ./routers:/home/code/routers
       - ./templates:/home/code/templates
       - ./utils:/home/code/utils
@@ -25,23 +27,23 @@ services:
       --lifespan=on --use-colors
       --reload --log-level debug
       "
-#    depends_on:
-#      - db
-#  db:
-#    build:
-#      context: ./postgresql
-#      dockerfile: Dockerfile
-#    platform: linux/amd64
-#    volumes:
-#      - ./postgres_data:/var/lib/postgresql/data/
-#      - ./postgresql:/home/code/postgresql
-#    ports:
-#      - 5432:5432
-#    environment:
-#      - POSTGRES_USER=postgres
-#      - POSTGRES_PASSWORD=password
-#      - POSTGRES_DB=periodic_table
-#
-#volumes:
-#  postgres_data:
+    depends_on:
+      - db
+  db:
+    build:
+      context: ./postgresql
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data/
+      - ./postgresql:/home/code/postgresql
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=test
+
+volumes:
+  postgres_data:
 

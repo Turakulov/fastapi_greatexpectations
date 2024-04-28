@@ -1,4 +1,6 @@
 from datetime import datetime
+
+import pandas as pd
 from pytz import timezone
 
 from fastapi import APIRouter, Request, Body
@@ -9,7 +11,8 @@ from great_expectations.core.yaml_handler import YAMLHandler
 from great_expectations.exceptions.exceptions import (
     InvalidExpectationConfigurationError,
 )
-from config import settings
+from config import settings, SCRIPT_DIR
+from notifications.messages import make_message_with_table
 from models.expectation import Event
 from utils.logging import AppLogger
 
@@ -18,21 +21,27 @@ logger = AppLogger.__call__().get_logger()
 router = APIRouter(prefix="/expectation", tags=["Expectations"])
 
 
-@router.get("/list_available_expectation_types/{table}")
-def list_available_expectation_types(table: str, request: Request):
-    _gx = request.app.state.gx
+# TODO: Сделать поднятие стрыницы index.html
+# TODO: Сделать проверку SQL запросов
+# TODO: Сделать отправку результатов по почте
 
-    _gx.set_asset(table_name=table)
 
-    _validator = _gx.context.get_validator(
-        datasource_name=settings.sql_datasource_name,
-        data_asset_name=_gx.sql_table_asset.name,
-    )
-
-    try:
-        return eval(f"_validator.list_available_expectation_types()")
-    except InvalidExpectationConfigurationError as e:
-        return e.__dict__
+# TODO: Сделать вывод списка доступных проверок для данных, проблема в том что надо указывать таблицу
+# @router.get("/list_available_expectation_types/{table}")
+# def list_available_expectation_types(table: str, request: Request):
+#     _gx = request.app.state.gx
+#
+#     _gx.set_asset(table_name=table)
+#
+#     _validator = _gx.context.get_validator(
+#         datasource_name=settings.sql_datasource_name,
+#         data_asset_name=_gx.sql_table_asset.name,
+#     )
+#
+#     try:
+#         return eval(f"_validator.list_available_expectation_types()")
+#     except InvalidExpectationConfigurationError as e:
+#         return e.__dict__
 
 
 @router.post("/run_expectation")
@@ -95,14 +104,48 @@ def run_expectation(
     _gx.context.save_expectation_suite(expectation_suite)
     _gx.context.add_or_update_checkpoint(**yaml.load(_gx.get_checkpoint_config()))
 
-
-    results = _gx.context.run_checkpoint(checkpoint_name=_gx.checkpoint_name,
-                                         run_time=datetime.now(tz=timezone('Europe/Moscow')),
-                                         # result_format="COMPLETE"
-                                         )
+    checkpoint_result = _gx.context.run_checkpoint(checkpoint_name=_gx.checkpoint_name,
+                                                   run_time=datetime.now(tz=timezone('Europe/Moscow')),
+                                                   # result_format="COMPLETE"
+                                                   )
     _gx.context.build_data_docs()
+    validation_result = checkpoint_result['run_results'][next(iter(checkpoint_result['run_results']))]['validation_result']
+    validation_success = validation_result['success']
+    results = validation_result['results']
 
-    return {}
+    print(checkpoint_result)
+    print('-----------')
+    # print(results)
+    rows = []
+    for result in results:
+        # Define a dictionary to store the row data
+        row = {'expectation_type': result['expectation_config']['expectation_type']
+            , 'success': result['success']}
+
+        for key, value in result['result'].items():
+            row[key] = value
+
+        rows.append(row)
+
+    for exp in rows:
+        expectation_type = exp.get('expectation_type')
+        unexpected_index_list = exp.get('unexpected_index_list')
+        df_email = pd.DataFrame.from_dict(unexpected_index_list)
+        if df_email.shape[0]:
+            print(df_email.shape[0], df_email)
+            message_header = 'Обнаружены следующие ошибки в DQ: '
+            message = make_message_with_table(data=df_email
+                                              , message_header=message_header)
+            email = open(f"{SCRIPT_DIR}/outputs/email_message.html", "w")
+            email.write(message)  # Adding input data to the HTML file
+            email.close()  # Saving the data into the HTML file
+            # send_email(
+            #     to=["Turakulov.A@citilink.ru"],
+            #     subject="Data Quality",
+            #     html_content=message,
+            # )
+
+    return {"request_status": "success", "dq_status": validation_success}
     #
     # _gx.set_asset(table_name=table)
     #
@@ -120,30 +163,28 @@ def run_expectation(
     #     return e.__dict__
 
 
-@router.get(
-    "/doc_expectation/{table}/{expectation_type}", response_class=PlainTextResponse
-)
-def doc_expectation(
-        table: str,
-        expectation_type: str,
-        request: Request,
-):
-    _gx = request.app.state.gx
+# TODO: Сделать вывод документации по проверке, проблема в том что надо указывать таблицу
+# @router.get(
+#     "/doc_expectation/{table}/{expectation_type}", response_class=PlainTextResponse
+# )
+# def doc_expectation(
+#         table: str,
+#         expectation_type: str,
+#         request: Request,
+# ):
+#     _gx = request.app.state.gx
+#
+#     _gx.set_asset(table_name=table)
+#
+#     _validator = _gx.context.get_validator(
+#         datasource_name=settings.sql_datasource_name,
+#         data_asset_name=_gx.sql_table_asset.name,
+#     )
+#
+#     try:
+#         _doc = eval(f"_validator.{expectation_type}.__doc__")
+#         return _doc
+#     except Exception as e:
+#         logger.error(f"Error: {e}")
+#         return e.__dict__
 
-    _gx.set_asset(table_name=table)
-
-    _validator = _gx.context.get_validator(
-        datasource_name=settings.sql_datasource_name,
-        data_asset_name=_gx.sql_table_asset.name,
-    )
-
-    try:
-        _doc = eval(f"_validator.{expectation_type}.__doc__")
-        return _doc
-    except Exception as e:
-        logger.error(f"Error: {e}")
-        return e.__dict__
-
-# TODO: endpoint to create expectation.py suite >
-#  should keep expectation.py suite in memory and update it with each call
-#  unless reset or implicit reset after save to database

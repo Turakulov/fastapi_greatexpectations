@@ -9,10 +9,8 @@ from great_expectations.data_context.data_context.abstract_data_context import (
     AbstractDataContext,
 )
 
-from config import settings
+from config import settings, SCRIPT_DIR
 from models.expectation import Event
-
-SCRIPT_DIR = os.path.dirname(__file__)
 
 
 class Singleton(type):
@@ -36,6 +34,7 @@ class GxSession(object):
 
     def __init__(self):
         self.context = ge.get_context()
+
         self.data_connector_name = None
         self.table_name = None
         self.schema_name = None
