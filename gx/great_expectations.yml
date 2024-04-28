@@ -113,11 +113,10 @@ datasources:
     execution_engine:
       class_name: SqlAlchemyExecutionEngine
       module_name: great_expectations.execution_engine
-      connection_string: postgresql://postgres:password@localhost:5432/test
+      connection_string: postgresql://postgres:password@db:5432/test
       create_temp_table: false
     data_connectors:
       connector_postgresql:
-        name: connector_postgresql
         class_name: ConfiguredAssetSqlDataConnector
         module_name: great_expectations.datasource.data_connector
         assets:

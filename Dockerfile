@@ -9,10 +9,10 @@ RUN apt-get update \
 
 
 # set work directory
-WORKDIR /code
+WORKDIR /fastapi_ge
 
 # set env variables
-ENV PYTHONPATH=/home/code/ PYTHONHASHSEED=0
+ENV PYTHONPATH=/fastapi_ge PYTHONHASHSEED=0
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
