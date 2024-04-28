@@ -125,3 +125,22 @@ datasources:
             module_name: great_expectations.datasource.data_connector.asset
             schema_name: public
             table_name: films
+  vertica.dev.some_table_name:
+    class_name: Datasource
+    module_name: great_expectations.datasource
+    execution_engine:
+      class_name: SqlAlchemyExecutionEngine
+      module_name: great_expectations.execution_engine
+      connection_string: postgresql://postgres:password@db:5432/test
+      create_temp_table: false
+    data_connectors:
+      connector_vertica:
+        name: connector_vertica
+        class_name: ConfiguredAssetSqlDataConnector
+        module_name: great_expectations.datasource.data_connector
+        assets:
+          some_table_name:
+            class_name: Asset
+            module_name: great_expectations.datasource.data_connector.asset
+            schema_name: dev
+            table_name: some_table_name

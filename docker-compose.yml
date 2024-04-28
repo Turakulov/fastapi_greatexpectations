@@ -22,6 +22,12 @@ services:
       "
     depends_on:
       - db
+#  gxweb:
+#      build: ./gx
+#      ports:
+#        - "8111:80"
+#      depends_on:
+#        - app
   db:
     build:
       context: ./postgresql

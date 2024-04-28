@@ -10,7 +10,7 @@ from great_expectations.data_context.data_context.abstract_data_context import (
 )
 
 from config import settings, SCRIPT_DIR
-from models.expectation import Event
+from models.expectation import EventCommon
 
 
 class Singleton(type):
@@ -50,7 +50,7 @@ class GxSession(object):
                 self.checkpoint_name)
 
     @gx_session_config.setter
-    def gx_session_config(self, gx_mapping: Event):
+    def gx_session_config(self, gx_mapping: EventCommon):
         self.data_connector_name = f"connector_{gx_mapping.connection}"
         self.table_name = gx_mapping.table_name
         self.schema_name = gx_mapping.schema_name
@@ -72,7 +72,7 @@ class GxSession(object):
         with open(f'{SCRIPT_DIR}/templates/checkpoint.yaml', 'r', encoding='utf-8') as file:
             config = file.read()
             config = config.replace('\"{{name}}\"', self.checkpoint_name) \
-                .replace('\"{{run_name_template}}\"', f'\"%Y-%m-%d %H:%M:%S|{self.datasource_name}\"') \
+                .replace('\"{{run_name_template}}\"', f'\"%Y%m%d_{self.datasource_name}\"') \
                 .replace('\"{{datasource_name}}\"', self.datasource_name) \
                 .replace('\"{{data_connector_name}}\"', self.data_connector_name) \
                 .replace('\"{{data_asset_name}}\"', self.table_name) \

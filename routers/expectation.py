@@ -1,9 +1,11 @@
 from datetime import datetime
+from typing import List
 
 import pandas as pd
 from pytz import timezone
 
-from fastapi import APIRouter, Request, Body
+from fastapi import APIRouter, Request, Body, UploadFile, File, Depends
+
 from fastapi.responses import PlainTextResponse
 from great_expectations.core import ExpectationConfiguration
 from great_expectations.core.batch import BatchRequest
@@ -11,9 +13,9 @@ from great_expectations.core.yaml_handler import YAMLHandler
 from great_expectations.exceptions.exceptions import (
     InvalidExpectationConfigurationError,
 )
-from config import settings, SCRIPT_DIR
+from config import SCRIPT_DIR
 from notifications.messages import make_message_with_table
-from models.expectation import Event
+from models.expectation import EventCommon, EventSQL
 from utils.logging import AppLogger
 
 logger = AppLogger.__call__().get_logger()
@@ -21,7 +23,7 @@ logger = AppLogger.__call__().get_logger()
 router = APIRouter(prefix="/expectation", tags=["Expectations"])
 
 
-# TODO: Сделать поднятие стрыницы index.html
+# TODO: Сделать поднятие страницы index.html
 # TODO: Сделать проверку SQL запросов
 # TODO: Сделать отправку результатов по почте
 
@@ -44,10 +46,23 @@ router = APIRouter(prefix="/expectation", tags=["Expectations"])
 #         return e.__dict__
 
 
-@router.post("/run_expectation")
-def run_expectation(
+@router.post("/run_sql_expectation")
+def run_sql_expectation(
         request: Request,
-        gx_mapping: Event = Body(
+        gx_mapping: EventSQL = Depends(),
+        files: List[UploadFile] = File(...)
+):
+    _gx = request.app.state.gx
+    return {
+        "JSON Payload": gx_mapping,
+        "Filenames": [file.filename for file in files],
+    }
+
+
+@router.post("/run_common_expectation")
+def run_common_expectation(
+        request: Request,
+        gx_mapping: EventCommon = Body(
             None,
             description="pass parameters as json dict and in next step unpack to **mapping",
         ),
@@ -109,7 +124,8 @@ def run_expectation(
                                                    # result_format="COMPLETE"
                                                    )
     _gx.context.build_data_docs()
-    validation_result = checkpoint_result['run_results'][next(iter(checkpoint_result['run_results']))]['validation_result']
+    validation_result = checkpoint_result['run_results'][next(iter(checkpoint_result['run_results']))][
+        'validation_result']
     validation_success = validation_result['success']
     results = validation_result['results']
 
@@ -162,7 +178,6 @@ def run_expectation(
     #     logger.error(f"Error: {e}")
     #     return e.__dict__
 
-
 # TODO: Сделать вывод документации по проверке, проблема в том что надо указывать таблицу
 # @router.get(
 #     "/doc_expectation/{table}/{expectation_type}", response_class=PlainTextResponse
@@ -187,4 +202,3 @@ def run_expectation(
 #     except Exception as e:
 #         logger.error(f"Error: {e}")
 #         return e.__dict__
-
