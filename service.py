@@ -42,6 +42,7 @@ class GxSession(object):
         self.expectation_suite_name = None
         self.checkpoint_name = None
 
+
     @property
     def gx_session_config(self):
         return (self.data_connector_name,

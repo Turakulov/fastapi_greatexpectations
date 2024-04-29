@@ -101,6 +101,16 @@ fluent_datasources:
         table_name: films
         schema_name:
     connection_string: postgresql://postgres:password@localhost:5432/
+  postgresql.public.films.sql:
+    type: sql
+    assets:
+      films.sql:
+        type: query
+        order_by: []
+        batch_metadata: {}
+        query: "select *\r\nfrom (\r\nSELECT kind, SUM(did) AS agg_did \r\nFROM public.films\
+          \ \r\nGROUP BY kind\r\n) as a \r\nwhere agg_did > 1"
+    connection_string: postgresql://postgres:password@db:5432/test
 notebooks:
 include_rendered_content:
   globally: false
@@ -117,6 +127,7 @@ datasources:
       create_temp_table: false
     data_connectors:
       connector_postgresql:
+        name: connector_postgresql
         class_name: ConfiguredAssetSqlDataConnector
         module_name: great_expectations.datasource.data_connector
         assets:
@@ -144,3 +155,22 @@ datasources:
             module_name: great_expectations.datasource.data_connector.asset
             schema_name: dev
             table_name: some_table_name
+  postgresql.public.movies:
+    class_name: Datasource
+    module_name: great_expectations.datasource
+    execution_engine:
+      class_name: SqlAlchemyExecutionEngine
+      module_name: great_expectations.execution_engine
+      connection_string: postgresql://postgres:password@db:5432/test
+      create_temp_table: false
+    data_connectors:
+      connector_postgresql:
+        name: connector_postgresql
+        class_name: ConfiguredAssetSqlDataConnector
+        module_name: great_expectations.datasource.data_connector
+        assets:
+          movies:
+            class_name: Asset
+            module_name: great_expectations.datasource.data_connector.asset
+            schema_name: public
+            table_name: movies

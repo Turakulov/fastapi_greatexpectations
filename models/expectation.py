@@ -1,8 +1,17 @@
+from enum import Enum
+
 from pydantic import BaseModel
 
 
+class SourceName(str, Enum):
+    vertica = "vertica"
+    postgresql = "postgresql"
+    mssql = "mssql"
+    mysql = "mysql"
+
+
 class EventCommon(BaseModel):
-    source: str
+    source: SourceName
     table_name: str
     schema_name: str
     connection: str
@@ -38,7 +47,7 @@ class EventCommon(BaseModel):
 
 
 class EventSQL(BaseModel):
-    source: str
+    source: SourceName
     table_name: str
     schema_name: str
     connection: str

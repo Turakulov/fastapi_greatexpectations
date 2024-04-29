@@ -1,0 +1,41 @@
+name: postgresql.public.movies.checkpoint
+config_version: 1.0
+template_name:
+module_name: great_expectations.checkpoint
+class_name: Checkpoint
+run_name_template: '%Y%m%d_postgresql.public.movies'
+expectation_suite_name:
+batch_request: {}
+action_list:
+  - name: store_validation_result
+    action:
+      class_name: StoreValidationResultAction
+  - name: store_evaluation_params
+    action:
+      class_name: StoreEvaluationParametersAction
+  - name: update_data_docs
+    action:
+      class_name: UpdateDataDocsAction
+evaluation_parameters: {}
+runtime_configuration: {}
+validations:
+  - action_list:
+      - name: store_validation_result
+        action:
+          class_name: StoreValidationResultAction
+      - name: store_evaluation_params
+        action:
+          class_name: StoreEvaluationParametersAction
+      - name: update_data_docs
+        action:
+          class_name: UpdateDataDocsAction
+    batch_request:
+      datasource_name: postgresql.public.movies
+      data_connector_name: connector_postgresql
+      data_asset_name: movies
+      data_connector_query:
+        index: -1
+    expectation_suite_name: postgresql.public.movies.suite
+profilers: []
+ge_cloud_id:
+expectation_suite_ge_cloud_id:
